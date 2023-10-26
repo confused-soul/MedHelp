@@ -11,3 +11,4 @@ threadpoolctl==3.2.0
 asgiref==3.6.0
 sqlparse==0.4.3
 tzdata==2022.7
+sqlite3==3.39.2
