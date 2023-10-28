@@ -3,6 +3,7 @@ from sklearn.preprocessing import StandardScaler
 from joblib import load
 import pandas as pd
 
+model = load('./ml_models/diabetes_model.joblib')
 dataset = pd.read_csv('./ml_models/diabetes.csv')
 X = dataset.drop(columns = 'Outcome', axis = 1)
 columns_to_drop = ['BP', 'ST', 'INS', 'DPF']
