@@ -1,4 +1,4 @@
-from django.middleware.csrf import CsrfViewMiddleware
+from django.shortcuts import HttpResponse, render
 from sklearn.preprocessing import StandardScaler
 from joblib import load
 import pandas as pd
