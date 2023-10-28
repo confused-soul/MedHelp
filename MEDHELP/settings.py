@@ -55,7 +55,7 @@ ROOT_URLCONF = "MEDHELP.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        'DIRS': [BASE_DIR / "template"],  #added manually
+        'DIRS': [BASE_DIR],  #added manually
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
