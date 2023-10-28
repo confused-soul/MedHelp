@@ -1,60 +1,51 @@
-from django.shortcuts import render, HttpResponse, redirect
-from django.middleware.csrf import CsrfViewMiddleware
-from sklearn.preprocessing import StandardScaler
-from joblib import load
-import numpy as np
-import pandas as pd
+from django.shortcuts import render, HttpResponse # To render websites
+import json # To handle json objects
+import requests # To fetch api
 
-model = load('./ml_models/diabetes_model.joblib')
-dataset = pd.read_csv('./ml_models/diabetes.csv')
-X = dataset.drop(columns = 'Outcome', axis = 1)
-columns_to_drop = ['BP', 'ST', 'INS', 'DPF']
-X = X.drop(columns=columns_to_drop)
-scaler = StandardScaler()
-scaler.fit(X)
+# Api urls
+url_breastcancer = 'https://breastcancerprediction.confusedsoul.repl.co/breastcancer_prediction'
+url_diabetes = 'https://diabetesprediction.confusedsoul.repl.co/diabetes_prediction'
 
-model2 = load('./ml_models/breastcancer_model.joblib')
-dataset2 = pd.read_csv('./ml_models/breastcancer.csv')
-X2 = dataset2.drop(columns = 'Outcome', axis = 1)
-columns_to_drop = ['tm', 'sm', 'sym', 'fdm', 'rse', 'tse', 'pse', 'ase', 'sse', 'cse', 'cnse', 'cpse', 'symse', 'fdse', 'rw', 'tw', 'pw', 'aw', 'sw', 'cw', 'cnw', 'cpw', 'symw', 'fdw']
-X2 = X2.drop(columns=columns_to_drop)
-scaler2 = StandardScaler()
-scaler2.fit(X2)
-
-# Create your views here.
+# Views functions
 def index(request):
-    return render(request, 'index.html')
+    return render(request, 'templates/index.html')
 
 def about(request):
-    return render(request, 'about.html')
+    return render(request, 'templates/about.html')
 
 def bmi(request):
-    return render(request, 'bmi.html')
+    return render(request, 'templates/bmi.html')
+
+def services(request):
+    return HttpResponse("This is Services Page")
+
+def contact(request):
+    return HttpResponse("This is Contact Page")
 
 def diabetes(request):
-    pg = request.POST.get('pgdb', '')  # Get the posted values or empty strings if not provided
-    gl = request.POST.get('gldb', '')
-    bm = request.POST.get('bmidb', '')
-    age = request.POST.get('agedb', '')
+  pg = request.POST.get('pgdb', '')  # Get the posted values or empty strings if not provided
+  gl = request.POST.get('gldb', '')
+  bm = request.POST.get('bmidb', '')
+  age = request.POST.get('agedb', '')
 
-    if request.method == 'POST':
-        data = (pg, gl, bm, age)
-        input_numpyarray = np.asarray(data)
-        input_reshaped = input_numpyarray.reshape(1, -1)
-        inp = scaler.transform(input_reshaped)
-        y_pred = model.predict(inp)
-        if y_pred[0] == 1:
-            result = "Diabetic"
-        else:
-            result = "Not Diabetic"
-    else:
-        result = None
+  if request.method == 'POST':
+    input = {                        # Creating input dictionary
+        'Pregnancies' : pg,
+        'Glucose' : gl,
+        'BMI' : bm,
+        'Age' : age
+    }
+    inp = json.dumps(input)         # Creating json input
+    response = requests.post(url_diabetes, data=inp) # Getting response
+    result = response.text
+  else:
+    result = None
 
-    # Pass the form data and result to the template
-    return render(request, 'diabetes.html', {'result': result, 'pg': pg, 'gl': gl, 'bm': bm, 'age': age})
+  # Pass the form data and result to the template
+  return render(request, 'templates/diabetes.html', {'result': result, 'pg': pg, 'gl': gl, 'bm': bm, 'age': age})
 
 def breastcancer(request):
-    rm = request.POST.get('rm', '')  # Get the posted values or empty strings if not provided
+    rm = request.POST.get('rm', '')
     pm = request.POST.get('pm', '')
     am = request.POST.get('am', '')
     cm = request.POST.get('cm', '')
@@ -62,23 +53,28 @@ def breastcancer(request):
     cpm = request.POST.get('cpm', '')
 
     if request.method == 'POST':
-        data = (rm, pm, am, cm, cnm, cpm)
-        input_numpyarray = np.asarray(data)
-        input_reshaped = input_numpyarray.reshape(1, -1)
-        inp = scaler2.transform(input_reshaped)
-        y_pred = model2.predict(inp)
-        if y_pred[0] == 1:
-            result = "Melignant"
-        else:
-            result = "Benign"
+        input = {
+            'radius': rm,
+            'perimeter': pm,
+            'area': am,
+            'compactness': cm,
+            'concativity': cnm,
+            'concave_points': cpm
+        }
+        inp = json.dumps(input)
+        response = requests.post(url_breastcancer, data=inp)
+        result = response.text
     else:
         result = None
 
     # Pass the form data and result to the template
-    return render(request, 'breastcancer.html', {'result': result, 'rm': rm, 'pm': pm, 'am': am, 'cm': cm, 'cnm':cnm, 'cpm':cpm})
-
-def services(request):
-    return HttpResponse("This is Services Page")
-
-def contact(request):
-    return HttpResponse("This is Contact Page")
+    return render(
+        request, 'templates/breastcancer.html', {
+            'result': result,
+            'rm': rm,
+            'pm': pm,
+            'am': am,
+            'cm': cm,
+            'cnm': cnm,
+            'cpm': cpm
+        })
